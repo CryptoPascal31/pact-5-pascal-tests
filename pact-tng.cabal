@@ -1,4 +1,4 @@
-cabal-version:       3.16
+cabal-version:       3.14
 name:                pact-tng
 version:             5.4
 -- ^ 4 digit is prerelease, 3- or 2-digit for prod release
@@ -83,7 +83,6 @@ common pact-common
     , ram >=0.2.2
     , safe-exceptions
     , ralist >= 0.4.0.0
-    , haskeline
     , semirings
     , utf8-string
     , exceptions
@@ -104,9 +103,11 @@ common pact-common
     -- hyperlane deps
     , binary
     , wide-word
-    , ethereum
     , template-haskell
     , pact-tng:unsafe
+
+  if !arch(wasm32)
+    build-depends: ethereum
 
   ghc-options: -Wall -Werror -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
   ghc-prof-options: -fprof-auto -fprof-auto-calls
@@ -141,9 +142,12 @@ library pact-crypto
     , text
     , base64-bytestring
     , bytestring
-    , hashes >= 0.3
     , safe-exceptions
     , deepseq
+
+  if !arch(wasm32)
+    build-depends: hashes >= 0.3
+
 
   exposed-modules:
     Pact.Core.Crypto.Base64

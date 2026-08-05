@@ -18,9 +18,9 @@ import Control.DeepSeq
 import Data.ByteString(ByteString)
 import Data.ByteString.Short qualified as BSS
 import Data.Coerce
-import Data.Hash.Class.Mutable (initialize, finalize, updateByteString)
-import Data.Hash.Internal.OpenSSL (OpenSslException(..))
-import Data.Hash.Keccak (Keccak256(..))
+--import Data.Hash.Class.Mutable (initialize, finalize, updateByteString)
+--import Data.Hash.Internal.OpenSSL (OpenSslException(..))
+--import Data.Hash.Keccak (Keccak256(..))
 import Data.Text (Text)
 import Data.Text.Encoding qualified as Text
 import Data.Vector (Vector)
@@ -38,21 +38,5 @@ data Keccak256Error
 instance NFData Keccak256Error
 
 keccak256 :: Vector ByteString -> Either Keccak256Error Text
-keccak256 bytesArray = unsafePerformIO $ do
-  e <- try @_ @SomeException $ do
-    ctx <- initialize @Keccak256
-    forM_ bytesArray $ \bytes -> do
-      case decodeBase64UrlUnpadded bytes of
-        Left b64Err -> do
-          throwM (Keccak256Base64Exception b64Err)
-        Right bytes -> do
-          updateByteString @Keccak256 ctx bytes
-    Keccak256 hash <- finalize ctx
-    pure (BSS.fromShort $ coerce hash)
-  case e of
-    Left err
-      | Just (OpenSslException msg) <- fromException err -> pure (Left (Keccak256OpenSslException msg))
-      | Just (exc :: Keccak256Error) <- fromException err -> pure (Left exc)
-      | otherwise -> pure (Left (Keccak256OtherException (displayException err)))
-    Right hash -> pure (Right (Text.decodeUtf8 (encodeBase64UrlUnpadded hash)))
+keccak256 bytesArray = Left $ Keccak256OtherException "Not impleementd with WASM"
 {-# noinline keccak256 #-}
