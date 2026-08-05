@@ -20,6 +20,7 @@ jobs:
         run: |
           curl https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta/-/raw/master/bootstrap.sh | sh
           ~/.ghc-wasm/add_to_github_path.sh
+          echo "SYSROOT=$HOME/.ghc-wasm/wasi-sdk/share/wasi-sysroot" >> "$GITHUB_ENV"
 
 
       - name: Prepare dirs
@@ -31,7 +32,7 @@ jobs:
         env:
           CFLAGS: -O2 -D_WASI_EMULATED_SIGNAL
           LDFLAGS: -lwasi-emulated-signal
-          SYSROOT: $HOME/.ghc-wasm/wasi-sdk/share/wasi-sysroot/
+
         run: |
           wget https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
           tar xJf gmp-6.3.0.tar.xz
@@ -45,7 +46,7 @@ jobs:
       - name: Build MPFR
         working-directory: ${{ github.workspace }}/external-deps
         env:
-          SYSROOT: $HOME/.ghc-wasm/wasi-sdk/share/wasi-sysroot/
+
         run: |
           wget https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.2.tar.xz
           tar xJf mpfr-4.2.2.tar.xz
