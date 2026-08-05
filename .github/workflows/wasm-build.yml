@@ -46,7 +46,7 @@ jobs:
       - name: Build MPFR
         working-directory: ${{ github.workspace }}/external-deps
         env:
-
+          A: abcd
         run: |
           wget https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.2.tar.xz
           tar xJf mpfr-4.2.2.tar.xz
