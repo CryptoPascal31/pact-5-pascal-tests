@@ -126,7 +126,7 @@ foreign import ccall "__gmpq_clear"
   c'mpq_clear :: Mpq_t -> IO ()
 
 foreign import ccall "__gmpq_set_str"
-  c'mpq_set_str :: Mpq_t -> Ptr CChar -> CInt -> IO ()
+  c'mpq_set_str :: Mpq_t -> Ptr CChar -> CInt -> IO CInt
 
 foreign import ccall "__gmpq_get_str"
   c'mpq_get_str :: Ptr CChar -> CInt -> Mpq_t -> IO (Ptr CChar)
@@ -206,7 +206,7 @@ dec2Mpfr d k =
   withCString (show (numerator r) ++ "/" ++ show (denominator r)) $ \r' ->
   withTempq $ \q ->
   withTemp $ \x -> do
-    c'mpq_set_str q r' 10
+    void $ c'mpq_set_str q r' 10
     void $ c'mpfr_set_q x q rounding
     k x
   where

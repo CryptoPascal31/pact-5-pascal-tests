@@ -34,12 +34,12 @@ flag with-crypto
 flag with-funcall-tracing
   description: Enable Tracing on user function calls
   manual: True
-  default: True
+  default: False
 
 flag with-native-tracing
   description: Enable Tracing on pact primitives
   manual: True
-  default: True
+  default: False
 
 library unsafe
   visibility: public
@@ -303,7 +303,8 @@ library
     -- Coverage
     Pact.Core.Coverage.Types
 
-  extra-libraries: mpfr
+  if !arch(wasm32)
+    extra-libraries: mpfr
 
 library pact-repl
   import: pact-common
@@ -325,7 +326,6 @@ library pact-repl
     cpp-options: -DWITH_TRACING
 
   exposed-modules:
-    Pact.Core.Repl
     Pact.Core.Repl.Utils
     Pact.Core.Repl.Runtime.ReplBuiltin
     Pact.Core.Repl.Compile
@@ -348,7 +348,6 @@ library pact-repl
     , pact-tng
     , pact-tng:pact-crypto
     , filepath
-    , pandoc
 
 library pact-lsp
   import: pact-common
@@ -413,7 +412,11 @@ executable pact
   import: pact-common
   main-is: pact-repl/Main.hs
 
+  if arch(wasm32)
+    buildable: False
+
   build-depends: base
+               , haskeline
                , pact-tng
                , pact-tng:pact-repl
                , pact-tng:pact-lsp
@@ -431,6 +434,16 @@ executable pact
     -- and stops crapping out both LSP and our CI,
     -- PackageInfo_pact_tng
     Paths_pact_tng
+
+executable pact-raw
+  import: pact-common
+  main-is: raw-interpreter/Main.hs
+
+  build-depends: base
+               , pact-tng
+               , pact-tng:pact-repl
+
+  extra-libraries: mpfr
 
 benchmark bench
   type: exitcode-stdio-1.0
