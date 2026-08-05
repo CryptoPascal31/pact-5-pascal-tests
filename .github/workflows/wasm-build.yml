@@ -22,7 +22,7 @@ jobs:
           ~/.ghc-wasm/add_to_github_path.sh
 
 
-      - name: Prepare External deps dir
+      - name: Prepare dirs
         run: mkdir -p ${{ github.workspace }}/external-deps
 
 
@@ -33,11 +33,26 @@ jobs:
           LDFLAGS: -lwasi-emulated-signal
           SYSROOT: $HOME/.ghc-wasm/wasi-sdk/share/wasi-sysroot/
         run: |
-          wget https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz
+          wget https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
           tar xJf gmp-6.3.0.tar.xz
           cd gmp-6.3.0
           ./configure --host=wasm32-wasi --prefix="$SYSROOT" --libdir="$SYSROOT/lib/wasm32-wasi" \
                       --disable-assembly --disable-shared --enable-static
+
+          make
+          make install
+
+      - name: Build MPFR
+        working-directory: ${{ github.workspace }}/external-deps
+        env:
+          SYSROOT: $HOME/.ghc-wasm/wasi-sdk/share/wasi-sysroot/
+        run: |
+          wget https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.2.tar.xz
+          tar xJf mpfr-4.2.2.tar.xz
+          cd mpfr-4.2.2
+
+          ./configure --host=wasm32-wasi --prefix="$SYSROOT" --libdir="$SYSROOT/lib/wasm32-wasi" \
+                      --disable-shared --enable-static
 
           make
           make install
