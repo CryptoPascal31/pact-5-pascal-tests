@@ -1,0 +1,43 @@
+name: WASM Build
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Install Native GHC and Cabal
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: 9.14.1
+          cabal-version: 3.16
+
+      - name: Install WASM GHC Toolchain
+        run: |
+          curl https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta/-/raw/master/bootstrap.sh | sh
+          ~/.ghc-wasm/add_to_github_path.sh
+
+
+      - name: Prepare External deps dir
+        run: mkdir -p ${{ github.workspace }}/external-deps
+
+
+      - name: Build GMP
+        working-directory: ${{ github.workspace }}/external-deps
+        env:
+          CFLAGS: -O2 -D_WASI_EMULATED_SIGNAL
+          LDFLAGS: -lwasi-emulated-signal
+          SYSROOT: $HOME/.ghc-wasm/wasi-sdk/share/wasi-sysroot/
+        run: |
+          wget https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz
+          tar xJf gmp-6.3.0.tar.xz
+          cd gmp-6.3.0
+          ./configure --host=wasm32-wasi --prefix="$SYSROOT" --libdir="$SYSROOT/lib/wasm32-wasi" \
+                      --disable-assembly --disable-shared --enable-static
+
+          make
+          make install
