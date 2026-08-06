@@ -8,6 +8,9 @@ jobs:
 
   build:
     runs-on: ubuntu-24.04
+    env:
+      CABAL: wasm32-wasi-cabal build
+      PROJECT_FILE: cabal.project.wasi
 
     steps:
       - name: Install Native GHC and Cabal
@@ -64,34 +67,28 @@ jobs:
 
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Build dependencies
         run: |
-          wasm32-wasi-cabal build --project-file=cabal.project.wasi lib:pact-tng --only-dependencies
+          $CABAL --project-file=$PROJECT_FILE lib:pact-tng --only-dependencies
 
       - name: Build pact lib
         run: |
-          wasm32-wasi-cabal build --project-file=cabal.project.wasi lib:pact-tng
+          $CABAL --project-file=$PROJECT_FILE lib:pact-tng
 
       - name: Build REPL lib
         run: |
-          wasm32-wasi-cabal build --project-file=cabal.project.wasi lib:pact-repl
+          $CABAL --project-file=$PROJECT_FILE lib:pact-repl
 
       - name: Build Raw Pact
         run: |
-          wasm32-wasi-cabal build --project-file=cabal.project.wasi lib:pact-raw
+          $CABAL --project-file=$PROJECT_FILE exe:pact-raw
 
       - name: Prepare Bin
         run: |
           mkdir -p dist
-          BIN=$(wasm32-wasi-cabal list-bin exe:pact-raw)
-          cp $BIN dist
-
-      - name: Prepare Bin
-        run: |
-          mkdir -p dist
-          BIN=$(wasm32-wasi-cabal list-bin exe:pact-raw)
+          BIN=$($CABAL list-bin exe:pact-raw)
           cp $BIN dist
 
       - uses: actions/upload-artifact@v7
