@@ -87,7 +87,7 @@ jobs:
       - name: Prepare Bin
         run: |
           mkdir -p dist
-          BIN=$($WASM_CABAL list-bin exe:pact-raw)
+          BIN=$($WASM_CABAL list-bin exe:pact-raw | awk '/\.wasm$/ {print; exit}')
           cp $BIN dist
 
       - uses: actions/upload-artifact@v7
