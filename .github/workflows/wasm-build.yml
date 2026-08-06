@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     env:
-      CABAL: wasm32-wasi-cabal build
+      CABAL_BIN: wasm32-wasi-cabal build
       PROJECT_FILE: cabal.project.wasi
 
     steps:
@@ -71,24 +71,24 @@ jobs:
 
       - name: Build dependencies
         run: |
-          $CABAL --project-file=$PROJECT_FILE lib:pact-tng --only-dependencies
+          $CABAL_BIN --project-file=$PROJECT_FILE lib:pact-tng --only-dependencies
 
       - name: Build pact lib
         run: |
-          $CABAL --project-file=$PROJECT_FILE lib:pact-tng
+          $CABAL_BIN --project-file=$PROJECT_FILE lib:pact-tng
 
       - name: Build REPL lib
         run: |
-          $CABAL --project-file=$PROJECT_FILE lib:pact-repl
+          $CABAL_BIN --project-file=$PROJECT_FILE lib:pact-repl
 
       - name: Build Raw Pact
         run: |
-          $CABAL --project-file=$PROJECT_FILE exe:pact-raw
+          $CABAL_BIN --project-file=$PROJECT_FILE exe:pact-raw
 
       - name: Prepare Bin
         run: |
           mkdir -p dist
-          BIN=$($CABAL list-bin exe:pact-raw)
+          BIN=$($CABAL_BIN list-bin exe:pact-raw)
           cp $BIN dist
 
       - uses: actions/upload-artifact@v7
