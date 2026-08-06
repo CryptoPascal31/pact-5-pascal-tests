@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       WASM_CABAL: wasm32-wasi-cabal --project-file=cabal.project.wasi
-      CURL_TIMEOUT: --retry 5 --retry-all-errors --connect-timeout 10 --max-time 300
 
     steps:
       - name: Install Native GHC and Cabal
@@ -21,7 +20,7 @@ jobs:
 
       - name: Install WASM GHC Toolchain
         run: |
-          curl -fsSL $CURL_TIMEOUT https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta/-/raw/master/bootstrap.sh | sh
+          curl -fsSL --retry 5 https://gitlab.haskell.org/haskell-wasm/ghc-wasm-meta/-/raw/master/bootstrap.sh | sh
           ~/.ghc-wasm/add_to_github_path.sh
           echo "SYSROOT=$HOME/.ghc-wasm/wasi-sdk/share/wasi-sysroot" >> "$GITHUB_ENV"
 
