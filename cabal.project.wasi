@@ -32,10 +32,8 @@ source-repository-package
 -- Patch direct-sqlite to disable dynamic link to pthread lib
 source-repository-package
   type: git
-  tag: f664ededdf3b64d063c31276d25dd8cdc955909b
-  location: https://github.com/IreneKnapp/direct-sqlite.git
-  post-checkout-command: git apply ../../../patches/direct-sqlite.diff
-
+  tag: ce12f7337a44f36b3686a353f40df9efa55ec4bc
+  location: https://github.com/CryptoPascal31/direct-sqlite.git
 
 source-repository-package
   type: git
