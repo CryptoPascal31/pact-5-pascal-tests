@@ -445,6 +445,19 @@ executable pact-raw
 
   extra-libraries: mpfr
 
+executable pact-wasm-reactor
+  import: pact-common
+  main-is: wasm-reactor/Main.hs
+
+  build-depends: base
+               , ghc-experimental
+               , pact-tng
+               , pact-tng:pact-repl
+
+  extra-libraries: mpfr
+
+  ghc-options: -no-hs-main -O2 -optl-mexec-model=reactor -optl-Wl,--export=resetPact,--export=evalPact
+
 benchmark bench
   type: exitcode-stdio-1.0
   main-is: Bench.hs
