@@ -95,11 +95,12 @@ jobs:
           echo "bin=$BIN" >> $GITHUB_OUTPUT
 
 
-      - name: Prepare Bin
+      - name: Prepare Artifacts
         run: |
           mkdir -p dist
           cp ${{ steps.pact-raw.outputs.bin }} dist
           cp ${{ steps.pact-wasm-reactor.outputs.bin }} dist
+          $STRIP dist/*.wasm
 
       - uses: actions/upload-artifact@v7
         with:
