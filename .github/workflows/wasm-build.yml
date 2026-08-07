@@ -97,7 +97,7 @@ jobs:
       - name: Build Post-Link JS
         run: |
           mkdir -p js
-          $(wasm32-wasi-ghc --print-libdir)/post-link.mjs -i ${{ steps.pact-wasm-reactor.outputs.bin }} js/pact-wasm-reactor.js
+          $(wasm32-wasi-ghc --print-libdir)/post-link.mjs -i ${{ steps.pact-wasm-reactor.outputs.bin }} -o js/pact-wasm-reactor.js
 
       - name: Prepare Artifacts
         run: |
