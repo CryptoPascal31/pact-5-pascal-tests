@@ -84,14 +84,14 @@ jobs:
         id: pact-raw
         run: |
           $WASM_CABAL build exe:pact-raw
-          BIN=$($WASM_CABAL list-bin exe:pact-raw | awk '/\.wasm$/ {print; exit}')
+          BIN=$($WASM_CABAL list-bin exe:pact-raw)
           echo "bin=$BIN" >> $GITHUB_OUTPUT
 
       - name: Build WASM Reactor
         id: pact-wasm-reactor
         run: |
           $WASM_CABAL build exe:pact-wasm-reactor
-          BIN=$($WASM_CABAL list-bin exe:pact-wasm-reactor | awk '/\.wasm$/ {print; exit}')
+          BIN=$($WASM_CABAL list-bin exe:pact-wasm-reactor)
           echo "bin=$BIN" >> $GITHUB_OUTPUT
 
       - name: Build Post-Link JS
