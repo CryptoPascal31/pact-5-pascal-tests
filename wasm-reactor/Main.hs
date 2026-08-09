@@ -11,8 +11,11 @@ import System.IO
 --import System.FilePath
 --import System.Directory (createDirectoryIfMissing)
 import Data.IORef
---import Data.Text(Text)
+import Data.List (sort)
 import qualified Data.Text as T
+
+import qualified Pact.Core.Version as PI
+import qualified Data.Version as V
 
 import Pact.Core.Builtin
 import Pact.Core.Environment
@@ -53,11 +56,23 @@ newEvalState = do
     handleOutput _ = liftIO . setResult . show . pretty
 
 
-foreign export javascript "resetPact" resetState' :: IO ()
-resetState' :: IO ()
-resetState' = resetState
+foreign export javascript "pactReset" pactReset :: IO ()
+pactReset :: IO ()
+pactReset = resetState
 
-foreign export javascript "evalPact" pactEval :: JSString -> IO JSString
+foreign export javascript "pactVersion" pactVersion :: IO JSString
+pactVersion :: IO JSString
+pactVersion = (pure . toJSString . V.showVersion) PI.version
+
+foreign export javascript "pactBuiltins" pactBuiltins :: IO JSString
+pactBuiltins :: IO JSString
+pactBuiltins = (pure . toJSString . unlines) $ T.unpack <$> sort replCoreBuiltinNames
+
+--foreign export javascript "pactBuiltinDoc" pactBuiltinDoc :: IO JSString
+--pactBuiltinDoc :: IO JSString
+--pactBuiltinDoc = (pure . toJSString . unlines) $ T.unpack <$> replCoreBuiltinNames
+
+foreign export javascript "pactEval" pactEval :: JSString -> IO JSString
 pactEval :: JSString -> IO JSString
 pactEval input = do
 
