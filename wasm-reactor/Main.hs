@@ -68,9 +68,9 @@ foreign export javascript "pactBuiltins" pactBuiltins :: IO JSString
 pactBuiltins :: IO JSString
 pactBuiltins = (pure . toJSString . unlines) $ T.unpack <$> sort replCoreBuiltinNames
 
---foreign export javascript "pactBuiltinDoc" pactBuiltinDoc :: IO JSString
---pactBuiltinDoc :: IO JSString
---pactBuiltinDoc = (pure . toJSString . unlines) $ T.unpack <$> replCoreBuiltinNames
+foreign export javascript "pactBuiltinDoc" pactBuiltinDoc :: IO JSString
+pactBuiltinDoc :: IO JSString
+pactBuiltinDoc = (pure . toJSString) "## Not yet implemented"
 
 foreign export javascript "pactEval" pactEval :: JSString -> IO JSString
 pactEval :: JSString -> IO JSString

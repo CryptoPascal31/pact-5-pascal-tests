@@ -456,7 +456,7 @@ executable pact-wasm-reactor
 
   extra-libraries: mpfr
 
-  ghc-options: -no-hs-main -O2 -optl-mexec-model=reactor -optl-Wl,--export=pactReset,--export=pactEval,--export=pactVersion,--export=pactBuiltins
+  ghc-options: -no-hs-main -O2 -optl-mexec-model=reactor -optl-Wl,--export=pactReset,--export=pactEval,--export=pactVersion,--export=pactBuiltins,--export=pactBuiltinDoc
 
 benchmark bench
   type: exitcode-stdio-1.0
