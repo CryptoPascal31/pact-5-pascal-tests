@@ -72,15 +72,15 @@ foreign export javascript "pactReset" pactReset :: IO ()
 pactReset :: IO ()
 pactReset = resetState
 
-foreign export javascript "pactVersion" pactVersion :: IO JSString
+foreign export javascript "pactVersion sync" pactVersion :: IO JSString
 pactVersion :: IO JSString
 pactVersion = (pure . toJSString . V.showVersion) PI.version
 
-foreign export javascript "pactBuiltins" pactBuiltins :: IO JSString
+foreign export javascript "pactBuiltins sync" pactBuiltins :: IO JSString
 pactBuiltins :: IO JSString
 pactBuiltins = (pure . toJSString . unlines) $ T.unpack <$> sort replCoreBuiltinNames
 
-foreign export javascript "pactBuiltinDoc" pactBuiltinDoc :: IO JSString
+foreign export javascript "pactBuiltinDoc sync" pactBuiltinDoc :: IO JSString
 pactBuiltinDoc :: IO JSString
 pactBuiltinDoc = (pure . toJSString) "## Not yet implemented"
 
@@ -103,7 +103,7 @@ pactEval input = do
 
   toJSString <$> readIORef evalResult
 
-foreign export javascript "pactCheckCompleteExpression" pactCheckCompleteExpression :: JSString -> IO Bool
+foreign export javascript "pactCheckCompleteExpression sync" pactCheckCompleteExpression :: JSString -> IO Bool
 pactCheckCompleteExpression :: JSString -> IO Bool
 pactCheckCompleteExpression input =
   pure $ case doParse input of
