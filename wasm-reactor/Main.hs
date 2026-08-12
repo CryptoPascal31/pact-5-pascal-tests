@@ -1,16 +1,12 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
-{-# OPTIONS_GHC -Wno-unused-imports #-}
 
---import Control.Lens
 import GHC.Wasm.Prim
 import Control.Monad.IO.Class
-import Control.Exception.Safe
 import Control.Monad.Except
---import Control.Monad (when)
-import System.IO
---import System.FilePath
---import System.Directory (createDirectoryIfMissing)
+
 import Data.IORef
+import Data.Coerce
+import Data.Maybe
 import Data.List (sort)
 import qualified Data.Text as T
 
@@ -21,8 +17,11 @@ import Pact.Core.Builtin
 import Pact.Core.Environment
 import Pact.Core.Persistence.MockPersistence
 import Pact.Core.Pretty
+import Pact.Core.Repl.BuiltinDocs
+import Pact.Core.Repl.BuiltinDocs.Internal
 import qualified Pact.Core.Syntax.Lexer as LEX
 import qualified Pact.Core.Syntax.Parser as PARS
+import qualified Data.Map.Strict as M
 import Pact.Core.Errors
 import Pact.Core.Repl.Compile
 import Pact.Core.Repl.Utils
@@ -65,6 +64,9 @@ newEvalState = do
 jsToText :: JSString -> T.Text
 jsToText = T.pack . fromJSString
 
+textToJs :: T.Text -> JSString
+textToJs = toJSString . T.unpack
+
 jsToSource :: JSString -> SourceCode
 jsToSource =  (SourceCode "(interactive)") . jsToText
 
@@ -80,9 +82,13 @@ foreign export javascript "pactBuiltins sync" pactBuiltins :: IO JSString
 pactBuiltins :: IO JSString
 pactBuiltins = (pure . toJSString . unlines) $ T.unpack <$> sort replCoreBuiltinNames
 
-foreign export javascript "pactBuiltinDoc sync" pactBuiltinDoc :: IO JSString
-pactBuiltinDoc :: IO JSString
-pactBuiltinDoc = (pure . toJSString) "## Not yet implemented"
+foreign export javascript "pactBuiltinDoc sync" pactBuiltinDoc :: JSString -> IO JSString
+pactBuiltinDoc :: JSString -> IO JSString
+pactBuiltinDoc = pure . textToJs . handleMissing . getDoc . jsToText
+  where
+    getDoc k = coerce <$> M.lookup k builtinDocs
+    handleMissing = fromMaybe "# Missing doc"
+
 
 foreign export javascript "pactEval" pactEval :: JSString -> IO JSString
 pactEval :: JSString -> IO JSString
@@ -107,7 +113,8 @@ foreign export javascript "pactCheckCompleteExpression sync" pactCheckCompleteEx
 pactCheckCompleteExpression :: JSString -> IO Bool
 pactCheckCompleteExpression input =
   pure $ case doParse input of
-            Left (PEParseError (ParsingError e) _) | e == "[')']" -> False
+            Left (PEParseError (ParsingError e) _) | isMissingBracketerror e -> False
             _ -> True
   where
     doParse = \x -> LEX.lexer (jsToText x) >>= PARS.parseReplProgram
+    isMissingBracketerror e = e `elem` ["[')']", "['(']", "[']']", "['}']"]
