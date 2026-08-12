@@ -447,6 +447,10 @@ executable pact-raw
 
 executable pact-wasm-reactor
   import: pact-common
+
+  if !arch(wasm32)
+    buildable: False
+
   main-is: wasm-reactor/Main.hs
 
   build-depends: base
@@ -456,7 +460,14 @@ executable pact-wasm-reactor
 
   extra-libraries: mpfr
 
-  ghc-options: -no-hs-main -O2 -optl-mexec-model=reactor -optl-Wl,--export=pactReset,--export=pactEval,--export=pactVersion,--export=pactBuiltins,--export=pactBuiltinDoc
+  ghc-options: -no-hs-main -O2
+               "-optl-mexec-model=reactor"
+               "-optl-Wl,--export=pactReset"
+               "-optl-Wl,--export=pactEval"
+               "-optl-Wl,--export=pactVersion"
+               "-optl-Wl,--export=pactBuiltins"
+               "-optl-Wl,--export=pactBuiltinDoc"
+               "-optl-Wl,--export=pactCheckCompleteExpression"
 
 benchmark bench
   type: exitcode-stdio-1.0

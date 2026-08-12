@@ -21,6 +21,9 @@ import Pact.Core.Builtin
 import Pact.Core.Environment
 import Pact.Core.Persistence.MockPersistence
 import Pact.Core.Pretty
+import qualified Pact.Core.Syntax.Lexer as LEX
+import qualified Pact.Core.Syntax.Parser as PARS
+import Pact.Core.Errors
 import Pact.Core.Repl.Compile
 import Pact.Core.Repl.Utils
 import Pact.Core.Serialise
@@ -42,6 +45,9 @@ evalResult = unsafePerformIO (newIORef "")
 setResult :: String -> IO ()
 setResult = writeIORef evalResult
 
+setTextResult :: T.Text -> IO ()
+setTextResult = setResult . T.unpack
+
 resetState:: IO ()
 resetState = newEvalState >>= writeIORef evalState
 
@@ -55,6 +61,12 @@ newEvalState = do
     handleOutput :: (Pretty a, MonadIO m) => FileLocSpanInfo -> a -> m ()
     handleOutput _ = liftIO . setResult . show . pretty
 
+
+jsToText :: JSString -> T.Text
+jsToText = T.pack . fromJSString
+
+jsToSource :: JSString -> SourceCode
+jsToSource =  (SourceCode "(interactive)") . jsToText
 
 foreign export javascript "pactReset" pactReset :: IO ()
 pactReset :: IO ()
@@ -77,16 +89,25 @@ pactEval :: JSString -> IO JSString
 pactEval input = do
 
   result <- evalReplM evalState $ do
-    eout <- tryError $ interpretReplProgramDirect $ SourceCode "(interactive)" $ T.pack $ fromJSString $ input
+    eout <- (tryError . interpretReplProgramDirect . jsToSource)  input
     case eout of
       Right _ -> pure ()
       Left err -> do
           rstate <- getReplState
           --replCurrSource .== defaultSrc
-          liftIO $ setResult $ T.unpack $ renderLocatedPactErrorFromState rstate err
+          liftIO $ setTextResult $ renderLocatedPactErrorFromState rstate err
 
   case result of
-    Left err -> setResult $ T.unpack $ replError (SourceCode "(interactive)" "") err
+    Left err -> setTextResult $ replError (SourceCode "(interactive)" "") err
     _ -> return ()
 
   toJSString <$> readIORef evalResult
+
+foreign export javascript "pactCheckCompleteExpression" pactCheckCompleteExpression :: JSString -> IO Bool
+pactCheckCompleteExpression :: JSString -> IO Bool
+pactCheckCompleteExpression input =
+  pure $ case doParse input of
+            Left (PEParseError (ParsingError e) _) | e == "[')']" -> False
+            _ -> True
+  where
+    doParse = \x -> LEX.lexer (jsToText x) >>= PARS.parseReplProgram
