@@ -5,6 +5,7 @@ import Control.Monad.IO.Class
 import Control.Monad.Except
 
 import Data.IORef
+import Data.Default
 import Data.Coerce
 import Data.Maybe
 import Data.List (sort)
@@ -32,9 +33,12 @@ import System.IO.Unsafe (unsafePerformIO)
 main :: IO ()
 main = error "not used, reactor module"
 
+replState :: IORef (ReplState ReplCoreBuiltin)
+replState = unsafePerformIO (newReplState >>= newIORef)
+{-# NOINLINE replState #-}
 
-evalState :: IORef (ReplState ReplCoreBuiltin)
-evalState = unsafePerformIO (newEvalState >>= newIORef)
+evalState :: IORef (EvalState ReplCoreBuiltin FileLocSpanInfo)
+evalState = unsafePerformIO $ newIORef def
 {-# NOINLINE evalState #-}
 
 evalResult :: IORef String
@@ -48,10 +52,10 @@ setTextResult :: T.Text -> IO ()
 setTextResult = setResult . T.unpack
 
 resetState:: IO ()
-resetState = newEvalState >>= writeIORef evalState
+resetState = newReplState >>= writeIORef replState >> writeIORef evalState def
 
-newEvalState:: IO (ReplState ReplCoreBuiltin)
-newEvalState = do
+newReplState:: IO (ReplState ReplCoreBuiltin)
+newReplState = do
   pdb <- mockPactDb serialisePact_repl_fileLocSpanInfo
   ee <- defaultEvalEnv pdb replBuiltinMap
   return (mkReplState' ee handleOutput)
@@ -96,19 +100,21 @@ foreign export javascript "pactEval" pactEval :: JSString -> IO JSString
 pactEval :: JSString -> IO JSString
 pactEval input = do
 
-  result <- evalReplM evalState $ do
+  prevEvalState <- readIORef evalState
+  (result, newEvalState) <- runEvalM (ReplEnv replState) prevEvalState $ do
     eout <- (tryError . interpretReplProgramDirect . jsToSource)  input
     case eout of
-      Right _ -> pure ()
       Left err -> do
           rstate <- getReplState
           --replCurrSource .== defaultSrc
           liftIO $ setTextResult $ renderLocatedPactErrorFromState rstate err
+      _ -> return ()
 
   case result of
     Left err -> setTextResult $ replError (SourceCode "(interactive)" "") err
     _ -> return ()
 
+  writeIORef evalState newEvalState
   toJSString <$> readIORef evalResult
 
 foreign export javascript "pactCheckCompleteExpression sync" pactCheckCompleteExpression :: JSString -> IO Bool
