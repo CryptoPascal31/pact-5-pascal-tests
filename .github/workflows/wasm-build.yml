@@ -24,11 +24,6 @@ jobs:
           ~/.ghc-wasm/add_to_github_path.sh
           echo "SYSROOT=$HOME/.ghc-wasm/wasi-sdk/share/wasi-sysroot" >> "$GITHUB_ENV"
 
-      - name: Show ghc and cabal Version
-        run: |
-          $WASM_CABAL --version
-          $WASM_GHC --version
-
       - name: Prepare dirs
         run: mkdir -p ${{ github.workspace }}/external-deps
 
