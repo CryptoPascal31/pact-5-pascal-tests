@@ -202,26 +202,6 @@ specialFormNames = mapMaybe specialFormToText [minBound .. maxBound]
 renderLocatedPactErrorFromState :: ReplState b -> PactError FileLocSpanInfo -> Text
 renderLocatedPactErrorFromState rstate err = rendered
 
-replCompletion
-  :: [Text]
-  -- ^ natives
-  -> CompletionFunc (ReplM b)
-replCompletion natives =
-  completeQuotedWord (Just '\\') "\"" listFiles $
-  completeWord (Just '\\') filenameWordBreakChars $ \str -> do
-    tlns <- uses (loaded . loToplevel) M.keys
-    moduleNames <- uses (loaded . loModules) (fmap renderModuleName . M.keys)
-    prefixedNames <- uses (loaded . loModules) toPrefixed
-    let
-      allNames = Set.fromList $ T.unpack <$> concat
-        [tlns, moduleNames, prefixedNames, natives, specialFormNames]
-    pure $ simpleCompletion <$> Set.toList (Set.filter (str `isPrefixOf`) allNames)
-  where
-  replInfo = view peInfo err
-  originFile = case rstate ^. replLoadedFiles . at (_flsiFile replInfo) of
-            Just sc -> sc
-            Nothing -> rstate ^. replCurrSource
-  rendered = replError originFile err
 
 evalReplM :: IORef (ReplState b) -> ReplM b a -> IO (Either (PactError FileLocSpanInfo) a)
 evalReplM env st = runEvalMResult (ReplEnv env) def st
