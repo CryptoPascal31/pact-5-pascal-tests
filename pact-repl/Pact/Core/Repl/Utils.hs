@@ -201,7 +201,12 @@ specialFormNames = mapMaybe specialFormToText [minBound .. maxBound]
 -- | Render a nice error
 renderLocatedPactErrorFromState :: ReplState b -> PactError FileLocSpanInfo -> Text
 renderLocatedPactErrorFromState rstate err = rendered
-
+  where
+  replInfo = view peInfo err
+  originFile = case rstate ^. replLoadedFiles . at (_flsiFile replInfo) of
+            Just sc -> sc
+            Nothing -> rstate ^. replCurrSource
+  rendered = replError originFile err
 
 evalReplM :: IORef (ReplState b) -> ReplM b a -> IO (Either (PactError FileLocSpanInfo) a)
 evalReplM env st = runEvalMResult (ReplEnv env) def st
