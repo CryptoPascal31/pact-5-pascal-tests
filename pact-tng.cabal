@@ -369,7 +369,7 @@ library pact-repl
   build-depends:
     pact-tng:pact-repl-common
 
-   exposed-modules:
+  exposed-modules:
     Pact.Core.Repl
 
 
