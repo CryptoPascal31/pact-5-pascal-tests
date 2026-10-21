@@ -95,8 +95,6 @@ replCompletion natives =
         [tlns, moduleNames, prefixedNames, natives, specialFormNames]
     pure $ simpleCompletion <$> Set.toList (Set.filter (str `isPrefixOf`) allNames)
   where
-  specialFormNames =
-    ["and", "or", "if",  "enforce", "enforce-one", "with-capability", "try", "create-user-guard"]
   defNames = \case
     ModuleData md _ ->
       Term.defName <$> Term._mDefs md

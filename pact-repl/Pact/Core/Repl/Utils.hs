@@ -48,6 +48,7 @@ module Pact.Core.Repl.Utils
  , recordTestFailure
  , emptyTxState
  , mkReplErrorLocSlice
+ , specialFormNames
  ) where
 
 import Control.Lens
