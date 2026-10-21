@@ -58,6 +58,7 @@ import Control.Monad.State.Strict(put)
 import Data.Void
 import Data.IORef
 import Data.Text(Text)
+import Data.Maybe(mapMaybe)
 import qualified Data.Set as Set
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
