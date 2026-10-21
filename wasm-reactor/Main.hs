@@ -85,8 +85,6 @@ pactVersion = (pure . toJSString . V.showVersion) PI.version
 foreign export javascript "pactBuiltins sync" pactBuiltins :: IO JSString
 pactBuiltins :: IO JSString
 pactBuiltins = (pure . toJSString . unlines) $ T.unpack <$> sort (replCoreBuiltinNames <> specialFormNames)
-  where
-    specialFormNames = ["and", "or", "if",  "enforce", "enforce-one", "with-capability", "try", "create-user-guard"]
 
 foreign export javascript "pactBuiltinDoc sync" pactBuiltinDoc :: JSString -> IO JSString
 pactBuiltinDoc :: JSString -> IO JSString
