@@ -1,6 +1,6 @@
-cabal-version:       3.14
+cabal-version:       3.16
 name:                pact-tng
-version:             5.4
+version:             5.4.1
 -- ^ 4 digit is prerelease, 3- or 2-digit for prod release
 synopsis:            Smart contract language library and REPL
 description:
@@ -41,6 +41,16 @@ flag with-native-tracing
   manual: True
   default: False
 
+flag with-pandoc-repl-rendering
+  description: Enable Markdown rendering within the REPL with Pandoc
+  manual: True
+  default: False
+
+flag with-pandoc-repl-rendering
+  description: Enable Markdown rendering within the REPL with Pandoc
+  manual: True
+  default: True
+
 library unsafe
   visibility: public
   hs-source-dirs: unsafe/src
@@ -55,6 +65,7 @@ common pact-common
   build-depends:
     , Decimal
     , attoparsec
+    , base >= 4.22
     , base >= 4.22
     , base16-bytestring
     , base64-bytestring
@@ -80,6 +91,7 @@ common pact-common
     , vector-algorithms
     , megaparsec
     , crypton >=1.1.2
+    , ram >=0.2.2
     , ram >=0.2.2
     , safe-exceptions
     , ralist >= 0.4.0.0
@@ -142,6 +154,8 @@ library pact-crypto
     , text
     , base64-bytestring
     , bytestring
+    , ram >=0.2.2
+    , crypton
     , safe-exceptions
     , deepseq
 
@@ -170,6 +184,8 @@ library pact-request-api
     , pact-tng:pact-crypto
     , yaml
     , lrucaching
+    , servant-server >= 0.20.3
+    , servant >= 0.20.3
     , servant-server >= 0.20.3
     , servant >= 0.20.3
     , warp
@@ -324,6 +340,11 @@ library pact-repl
 
   if (flag(with-native-tracing) || flag(with-funcall-tracing))
     cpp-options: -DWITH_TRACING
+
+  if (flag(with-pandoc-repl-rendering))
+    cpp-options: -DWITH_PANDOC_RENDERING
+    build-depends:
+      pandoc
 
   exposed-modules:
     Pact.Core.Repl.Utils
@@ -621,7 +642,6 @@ test-suite core-tests
     , wai-logger
     , fast-logger
     , property-matchers
-    , hashes >= 0.3
 
   other-modules:
     , Pact.Core.Test.CommandTests

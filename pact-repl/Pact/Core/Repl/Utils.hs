@@ -74,6 +74,7 @@ import Pact.Core.Environment
 import Pact.Core.Builtin
 import Pact.Core.PactValue
 import Pact.Core.Debug
+import Pact.Core.IR.Desugar
 import qualified Pact.Core.IR.Term as Term
 
 import Data.Default
@@ -193,9 +194,28 @@ emptyTxState = do
     let preservedFQReplDefuns = M.filterWithKey (\fqn _ -> _fqModule fqn == replModuleName) (_loAllLoaded lo)
     pure $ set loToplevel preservedTLReplDefuns $ set loAllLoaded preservedFQReplDefuns $ def
 
+
+specialFormNames:: [Text]
+specialFormNames = mapMaybe specialFormToText [minBound .. maxBound]
+
 -- | Render a nice error
 renderLocatedPactErrorFromState :: ReplState b -> PactError FileLocSpanInfo -> Text
 renderLocatedPactErrorFromState rstate err = rendered
+
+replCompletion
+  :: [Text]
+  -- ^ natives
+  -> CompletionFunc (ReplM b)
+replCompletion natives =
+  completeQuotedWord (Just '\\') "\"" listFiles $
+  completeWord (Just '\\') filenameWordBreakChars $ \str -> do
+    tlns <- uses (loaded . loToplevel) M.keys
+    moduleNames <- uses (loaded . loModules) (fmap renderModuleName . M.keys)
+    prefixedNames <- uses (loaded . loModules) toPrefixed
+    let
+      allNames = Set.fromList $ T.unpack <$> concat
+        [tlns, moduleNames, prefixedNames, natives, specialFormNames]
+    pure $ simpleCompletion <$> Set.toList (Set.filter (str `isPrefixOf`) allNames)
   where
   replInfo = view peInfo err
   originFile = case rstate ^. replLoadedFiles . at (_flsiFile replInfo) of

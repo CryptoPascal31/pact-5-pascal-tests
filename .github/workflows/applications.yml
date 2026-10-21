@@ -4,8 +4,17 @@ name: Build / Release / Benchmark
 # Build on each commit
 # Gasmodel and release must be manually selected.
 on:
+
+  schedule:
+    - cron: '36 4 * * *'
+
   workflow_dispatch:
     inputs:
+
+      cleanup:
+        description: 'Delete cache : Build from scratch'
+        type: boolean
+        default: false
 
       gasmodel:
           description: "Run Gasmodel"
@@ -14,18 +23,18 @@ on:
           default: false
 
       release:
-          description: "Create a github release"
+          description: "Create a github release (Only Draft)"
           type: boolean
           required: true
           default: false
 
       commit_sha:
-        description: "Commit to build"
+        description: "Commit to build.. Empty to build the tip"
         type: string
         required: false
 
       version_suffix:
-        description: "Suffix for the vesion number (eg beta)"
+        description: "Optional Suffix for the vesion number (eg beta)"
         type: string
         required: false
         default: ""
@@ -38,20 +47,37 @@ on:
     - '.github/workflows/applications.yml'
 
 jobs:
+
+  cleanup:
+    if: github.event_name == 'schedule' || inputs.cleanup
+    runs-on: ubuntu-latest
+
+    permissions:
+      actions: write
+      contents: read
+
+    steps:
+      - name: Delete caches
+        run: gh cache delete --all --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+
   build:
-    if: "!startsWith(github.ref, 'refs/tags/')"
+    needs: cleanup
+    if: always()
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         ghc: ["9.14.1"]
         cabal: ["3.16"]
-        os: ["ubuntu-22.04", "ubuntu-24.04", "macos-14", "macos-15"]
+        os: ["ubuntu-22.04", "ubuntu-24.04", "ubuntu-26.04", "macos-15"]
         cabalcache: ["true"]
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
           ref: ${{ inputs.commit_sha || github.sha }}
 
@@ -60,6 +86,7 @@ jobs:
       run: |
         mkdir -p pact-tests/legacy-db-regression
         curl -L https://raw.githubusercontent.com/kda-community/test-fixtures/refs/heads/main/pact-v1-chain-9.sqlite.xz | unxz > pact-tests/legacy-db-regression/pact-v1-chain-9.sqlite
+
     # Haskell Setup
     - name: Set permissions for .ghcup (ubuntu)
       if: startsWith(matrix.os, 'ubuntu-')
@@ -98,14 +125,7 @@ jobs:
           /opt/local/lib
           /usr/local/opt/openssl/lib/
         EOF
-    - name: Extend cabal.project.local for GHC-9.0.2
-      if: "startsWith(matrix.ghc, '9')"
-      shell: bash
-      run: |
-        cat >> cabal.project.local <<EOF
-        package pact
-          ghc-options: -Wwarn -Wunused-packages
-        EOF
+
     - name: Add check for unused packages
       shell: bash
       run: |
@@ -113,6 +133,7 @@ jobs:
         package pact
           ghc-options: -Wunused-packages
         EOF
+
     - name: Print cabal.project.local
       shell: bash
       run: cat cabal.project.local
@@ -137,7 +158,7 @@ jobs:
 
     - name: Restore Cabal store
       id: restore-cabal
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: ~/.cabal/store
         key: cabal-${{ matrix.os }}-${{ matrix.ghc }}-${{ steps.cache-key.outputs.freeze-hash }}
@@ -154,7 +175,7 @@ jobs:
 
     - name: Cache Cabal store if necessary
       if: steps.restore-cabal.outputs.cache-hit != 'true'
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v5
       with:
         path: ~/.cabal/store
         key: cabal-${{ matrix.os }}-${{ matrix.ghc }}-${{ steps.cache-key.outputs.freeze-hash }}
@@ -204,14 +225,14 @@ jobs:
 
     - name: Publish applications
       if: "!contains(matrix.flags, '-build-tool')"
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pact-applications.${{ matrix.ghc }}.${{ matrix.os }}
         path: artifacts/pact
 
     - name: Publish release artifact
       if: "!contains(matrix.flags, '-build-tool')"
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: pact-to-release.ghc${{ matrix.ghc }}.${{ matrix.os }}
         path: artifacts/pact_to_release
@@ -221,11 +242,11 @@ jobs:
 
     runs-on: "ubuntu-latest"
     needs: build
-    if: inputs.release == true
+    if: always() && inputs.release == true
 
     env:
       GHC_FOR_RELEASE: "9.10.3"
-      OS_TO_RELEASE: "ubuntu-22.04 ubuntu-24.04 macos-14 macos-15"
+      OS_TO_RELEASE: "ubuntu-22.04 ubuntu-24.04 ubuntu-26.04 macos-15"
       MAIN_LINUX_VERSION: "ubuntu-24.04"
 
     strategy:
@@ -233,12 +254,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.commit_sha || github.sha }}
 
       - name: Download artifacts
-        uses : actions/download-artifact@v5
+        uses : actions/download-artifact@v8
         with:
           pattern: pact-to-release.ghc${{ env.GHC_FOR_RELEASE }}.*
           path: to_release/
@@ -295,7 +316,7 @@ jobs:
   gasmodel:
     runs-on: "ubuntu-24.04"
     needs: build
-    if: inputs.gasmodel == true
+    if: always() && inputs.gasmodel == true
 
     env:
       GHC_FOR_BENCHMARKS: "9.10.3"
@@ -336,7 +357,7 @@ jobs:
           ./run_gasmodel -o ../results/gasmodel_results.html --json ../results/gasmodel_results.json --csv ../results/gasmodel_results.csv
 
       - name: Publish Gasmodel
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gasmodel
           path: results
