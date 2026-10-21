@@ -310,7 +310,7 @@ library
   if !arch(wasm32)
     extra-libraries: mpfr
 
-library pact-repl-common
+library pact-repl
   import: pact-common
   hs-source-dirs: pact-repl
   visibility: public
@@ -333,6 +333,10 @@ library pact-repl-common
     cpp-options: -DWITH_PANDOC_RENDERING
     build-depends:
       pandoc
+
+  if !arch(wasm32)
+    exposed-modules:
+      Pact.Core.Repl
 
   exposed-modules:
     Pact.Core.Repl.Utils
@@ -357,21 +361,6 @@ library pact-repl-common
     , pact-tng
     , pact-tng:pact-crypto
     , filepath
-
-library pact-repl
-  import: pact-common
-  hs-source-dirs: pact-repl
-  visibility: public
-
-  if !arch(wasm32)
-    buildable: False
-
-  build-depends:
-    pact-tng:pact-repl-common
-
-  exposed-modules:
-    Pact.Core.Repl
-
 
 library pact-lsp
   import: pact-common
@@ -454,7 +443,6 @@ executable pact
 
   -- beware of the autogen modules. Remember to `cabal clean`!
   other-modules:
-    Pact.Core.Repl
     -- TODO: Uncomment once this is finally fixed
     -- and stops crapping out both LSP and our CI,
     -- PackageInfo_pact_tng
@@ -466,7 +454,7 @@ executable pact-raw
 
   build-depends: base
                , pact-tng
-               , pact-tng:pact-repl-common
+               , pact-tng:pact-repl
 
   extra-libraries: mpfr
 
@@ -481,7 +469,7 @@ executable pact-wasm-reactor
   build-depends: base
                , ghc-experimental
                , pact-tng
-               , pact-tng:pact-repl-common
+               , pact-tng:pact-repl
 
   extra-libraries: mpfr
 
