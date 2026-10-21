@@ -44,11 +44,6 @@ flag with-native-tracing
 flag with-pandoc-repl-rendering
   description: Enable Markdown rendering within the REPL with Pandoc
   manual: True
-  default: False
-
-flag with-pandoc-repl-rendering
-  description: Enable Markdown rendering within the REPL with Pandoc
-  manual: True
   default: True
 
 library unsafe
