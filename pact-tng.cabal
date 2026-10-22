@@ -61,7 +61,6 @@ common pact-common
     , Decimal
     , attoparsec
     , base >= 4.22
-    , base >= 4.22
     , base16-bytestring
     , base64-bytestring
     , bytestring
@@ -337,6 +336,8 @@ library pact-repl
   if !arch(wasm32)
     exposed-modules:
       Pact.Core.Repl
+    build-depends:
+      haskeline
 
   exposed-modules:
     Pact.Core.Repl.Utils
@@ -429,7 +430,6 @@ executable pact
     buildable: False
 
   build-depends: base
-               , haskeline
                , pact-tng
                , pact-tng:pact-repl
                , pact-tng:pact-lsp
