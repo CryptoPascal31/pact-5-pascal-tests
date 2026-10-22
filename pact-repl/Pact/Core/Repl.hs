@@ -36,6 +36,7 @@ import System.FilePath
 import System.Directory (createDirectoryIfMissing)
 import Data.IORef
 import Data.Text(Text)
+import qualified Data.Map.Strict as M
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 
