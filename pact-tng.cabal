@@ -34,12 +34,12 @@ flag with-crypto
 flag with-funcall-tracing
   description: Enable Tracing on user function calls
   manual: True
-  default: False
+  default: True
 
 flag with-native-tracing
   description: Enable Tracing on pact primitives
   manual: True
-  default: False
+  default: True
 
 flag with-pandoc-repl-rendering
   description: Enable Markdown rendering within the REPL with Pandoc

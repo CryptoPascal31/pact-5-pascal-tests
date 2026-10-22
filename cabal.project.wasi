@@ -2,7 +2,7 @@ import: cabal.project
 
 package pact-tng
   ghc-options: -Wno-deprecations
-  flags: -with-pandoc-repl-rendering
+  flags: -with-pandoc-repl-rendering -with-funcall-tracing -with-native-tracing
 
 -- WASM Compilier requires a specific -D flag
 package ram
