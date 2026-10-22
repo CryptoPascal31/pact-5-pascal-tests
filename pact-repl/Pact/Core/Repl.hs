@@ -36,6 +36,8 @@ import System.FilePath
 import System.Directory (createDirectoryIfMissing)
 import Data.IORef
 import Data.Text(Text)
+import Data.List(isPrefixOf)
+import Data.Maybe(mapMaybe)
 import qualified Data.Set as Set
 import qualified Data.Map.Strict as M
 import qualified Data.Text as T
@@ -44,6 +46,7 @@ import qualified Data.Text.IO as T
 import Pact.Core.Builtin
 import Pact.Core.Environment
 import Pact.Core.Persistence
+import Pact.Core.Names
 import Pact.Core.Persistence.MockPersistence
 import Pact.Core.Pretty
 import Pact.Core.Repl.Compile
