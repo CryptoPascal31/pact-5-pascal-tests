@@ -31,7 +31,6 @@ import Control.Monad.Except
 import Control.Monad (when)
 import Control.Monad.Trans(lift)
 import System.Console.Haskeline
-import System.Console.Haskeline.Completion
 import System.FilePath
 import System.Directory (createDirectoryIfMissing)
 import Data.IORef
