@@ -35,7 +35,7 @@ jobs:
           LDFLAGS: -lwasi-emulated-signal
 
         run: |
-          wget https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
+          wget --retry-connrefused -w 20 -t 10 https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz
           tar xJf gmp-6.3.0.tar.xz
           cd gmp-6.3.0
           ./configure --host=wasm32-wasi --prefix="$SYSROOT" --libdir="$SYSROOT/lib/wasm32-wasi" \
@@ -49,7 +49,7 @@ jobs:
         env:
           CFLAGS: -O2  -fPIC
         run: |
-          wget https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.2.tar.xz
+          wget --retry-connrefused -w 20 -t 10 https://ftp.gnu.org/gnu/mpfr/mpfr-4.2.2.tar.xz
           tar xJf mpfr-4.2.2.tar.xz
           cd mpfr-4.2.2
 
